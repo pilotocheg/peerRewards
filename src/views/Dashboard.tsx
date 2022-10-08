@@ -1,32 +1,50 @@
-import React, {FC, useCallback} from 'react';
-import {SafeAreaView, StatusBar, StyleSheet, View} from 'react-native';
+import React, {FC, useCallback, useEffect} from 'react';
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import Drawer from '../components/Drawer';
 import ProfileCard from '../components/ProfileCard';
 import {calculateMoney} from '../helpers/calculateMoney';
 import {useAppReducer} from '../reducers/app';
+import api from '../services/api';
 import {Reward} from '../types/reward';
-import NewRewardForm, {RewardInfo} from './NewRewardForm';
+import NewRewardForm from './NewRewardForm';
 import RewardsList from './RewardsList';
 
 const Dashboard: FC = () => {
   const [
-    {user, users, rewards, modalShown},
-    {addReward, showModal, hideModal},
+    {user, rewards, users, modalShown, loading},
+    {setReward, showModal, hideModal, setAllData},
   ] = useAppReducer();
 
+  useEffect(() => {
+    api.loadAllData().then(setAllData).catch(console.error);
+  }, [setAllData]);
+
   const onAddReward = useCallback(
-    (rewardInfo: RewardInfo) => {
-      const newReward: Reward = {
-        ...rewardInfo,
-        id: rewards.length + 1,
-        date: new Date(),
-        rewardedBy: {...user},
-      };
-      addReward(newReward);
+    (newReward: Reward) => {
+      setReward(newReward);
       hideModal();
     },
-    [user, rewards, addReward, hideModal],
+    [setReward, hideModal],
   );
+
+  if (loading) {
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color="#000000" />
+      </View>
+    );
+  }
+  if (!user) {
+    // TODO: add beautiful error page
+    return <Text>Something went wrong{'\n'}Please, try again later</Text>;
+  }
 
   const {given, received} = calculateMoney(user, rewards);
 
@@ -50,7 +68,11 @@ const Dashboard: FC = () => {
           />
         </SafeAreaView>
         <Drawer onClose={hideModal} visible={modalShown}>
-          <NewRewardForm users={users} onAddReward={onAddReward} />
+          <NewRewardForm
+            users={users}
+            currentUser={user}
+            onAddReward={onAddReward}
+          />
         </Drawer>
       </View>
     </>
@@ -64,6 +86,11 @@ const styles = StyleSheet.create({
   dashboardBottom: {
     backgroundColor: '#ffffff',
     flexGrow: 1,
+  },
+  loader: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

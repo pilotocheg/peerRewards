@@ -23,14 +23,18 @@ interface Props {
 const Drawer: FC<PropsWithChildren<Props>> = ({onClose, visible, children}) => {
   const fadeAnim = useRef(new Animated.Value(Number(visible))).current;
   const [height, setHeight] = useState(0);
+  const [animationDone, setAnimationDone] = useState(true);
 
   useEffect(() => {
     if (height) {
+      setAnimationDone(false);
       Animated.timing(fadeAnim, {
         toValue: Number(visible),
         duration: 300,
         useNativeDriver: true,
-      }).start();
+      }).start(() => {
+        setAnimationDone(true);
+      });
     }
   }, [fadeAnim, visible, height]);
 
@@ -52,7 +56,7 @@ const Drawer: FC<PropsWithChildren<Props>> = ({onClose, visible, children}) => {
           },
         ],
       }}>
-      {children}
+      {(visible || !animationDone) && children}
       <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
         <Text style={styles.btnText}>✕</Text>
       </TouchableOpacity>

@@ -1,11 +1,14 @@
 import {User} from './user';
 
-export interface Reward {
-  id: number;
+export interface NewReward {
   text: string;
-  date: Date;
-  rewardedBy: User;
   received: number;
   userName: string;
   userId: number;
+  rewardedBy: User;
+}
+
+export interface Reward extends NewReward {
+  id: number;
+  date: Date;
 }

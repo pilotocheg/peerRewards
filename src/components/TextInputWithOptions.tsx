@@ -1,10 +1,4 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import React, {FC, useMemo, useState} from 'react';
 import TextInput, {Props as TextInputProps} from './TextInput';
 
@@ -47,7 +41,9 @@ const TextInputWithOptions: FC<Props> = ({
 
   const handleOptionPress = (option: string) => () => {
     onChangeText?.(option);
-    setOptionsShown(false);
+    if (optionsShown) {
+      setOptionsShown(false);
+    }
   };
 
   return (
@@ -60,16 +56,21 @@ const TextInputWithOptions: FC<Props> = ({
         {...props}
       />
       {!!filteredOptions?.length && optionsShown && (
-        <ScrollView style={styles.options}>
+        <View style={styles.options}>
           {filteredOptions.map((option, idx, arr) => (
             <TouchableOpacity
-              key={option}
-              onPress={handleOptionPress(option)}
-              style={idx !== arr.length - 1 && styles.optionBorder}>
-              <Text style={styles.option}>{option}</Text>
+              style={[
+                styles.option,
+                idx !== arr.length - 1 && styles.optionBorder,
+              ]}>
+              {/* TODO: this is a workaround to make the option press work on Android.
+              Find a way how to make it work with `onPress` on TouchableOpacity */}
+              <View key={option} onTouchEnd={handleOptionPress(option)}>
+                <Text>{option}</Text>
+              </View>
             </TouchableOpacity>
           ))}
-        </ScrollView>
+        </View>
       )}
     </View>
   );
@@ -78,7 +79,6 @@ const TextInputWithOptions: FC<Props> = ({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    position: 'relative',
     maxHeight: 100,
   },
   options: {
@@ -93,6 +93,7 @@ const styles = StyleSheet.create({
   option: {
     paddingHorizontal: 20,
     paddingVertical: 10,
+    zIndex: 5,
   },
   optionBorder: {
     borderBottomColor: 'lightgray',

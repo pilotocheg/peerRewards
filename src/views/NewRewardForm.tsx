@@ -2,24 +2,22 @@ import {
   View,
   StyleSheet,
   Text,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
 import React, {FC, useMemo, useState} from 'react';
+import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {Reward} from '../types/reward';
 import TextInput, {Props as TextInputProps} from '../components/TextInput';
 import {User} from '../types/user';
 import TextInputWithOptions from '../components/TextInputWithOptions';
-
-export type RewardInfo = Pick<
-  Reward,
-  'userId' | 'userName' | 'received' | 'text'
->;
+import TextButton from '../components/TextButton';
+import api from '../services/api';
 
 interface Props {
-  onAddReward: (rewardInfo: RewardInfo) => void;
+  onAddReward: (newReward: Reward) => void;
   users: User[];
+  currentUser: User;
 }
 
 interface FormState {
@@ -57,9 +55,10 @@ const validateFields = (fields: FormState): ErrorState | null => {
   return null;
 };
 
-const NewRewardForm: FC<Props> = ({onAddReward, users}) => {
+const NewRewardForm: FC<Props> = ({onAddReward, users, currentUser}) => {
   const [form, setForm] = useState<FormState>(initialFormState);
   const [error, setError] = useState<ErrorState | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const transformedUsers = useMemo(() => users.map(user => user.name), [users]);
 
@@ -70,7 +69,7 @@ const NewRewardForm: FC<Props> = ({onAddReward, users}) => {
     }
   };
 
-  const addReward = () => {
+  const addReward = async () => {
     const errorData = validateFields(form);
     if (errorData) {
       return setError(errorData);
@@ -80,17 +79,21 @@ const NewRewardForm: FC<Props> = ({onAddReward, users}) => {
     if (!user) {
       return setError({field: 'to', text: 'There is no user with this name'});
     }
-    onAddReward({
+    setLoading(true);
+    const newReward = await api.addReward({
       received: +amount,
       userName: user.name,
       userId: user.id,
       text: message,
+      rewardedBy: currentUser,
     });
+    setLoading(false);
+    onAddReward(newReward);
     setForm(initialFormState);
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAwareScrollView contentContainerStyle={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View>
           <Text style={styles.title}>Give Reward</Text>
@@ -115,12 +118,12 @@ const NewRewardForm: FC<Props> = ({onAddReward, users}) => {
               </View>
             );
           })}
-          <TouchableOpacity style={styles.giveBtn} onPress={addReward}>
-            <Text style={styles.btnText}>Give</Text>
-          </TouchableOpacity>
+          <View style={styles.giveBtn}>
+            <TextButton text="Give" onPress={addReward} loading={loading} />
+          </View>
         </View>
       </TouchableWithoutFeedback>
-    </View>
+    </KeyboardAwareScrollView>
   );
 };
 
@@ -140,17 +143,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   giveBtn: {
-    backgroundColor: '#ffffff',
     marginTop: 30,
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderRadius: 50,
     marginHorizontal: 30,
-  },
-  btnText: {
-    textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '500',
   },
 });
 
