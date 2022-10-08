@@ -8,8 +8,9 @@ import {
 } from 'react-native';
 import React, {FC, useMemo, useState} from 'react';
 import {Reward} from '../types/reward';
-import TextInput from '../components/TextInput';
+import TextInput, {Props as TextInputProps} from '../components/TextInput';
 import {User} from '../types/user';
+import TextInputWithOptions from '../components/TextInputWithOptions';
 
 export type RewardInfo = Pick<
   Reward,
@@ -60,6 +61,8 @@ const NewRewardForm: FC<Props> = ({onAddReward, users}) => {
   const [form, setForm] = useState<FormState>(initialFormState);
   const [error, setError] = useState<ErrorState | null>(null);
 
+  const transformedUsers = useMemo(() => users.map(user => user.name), [users]);
+
   const setFormField = (field: FormField) => (text: string) => {
     setForm(prevForm => ({...prevForm, [field]: text}));
     if (error) {
@@ -91,17 +94,27 @@ const NewRewardForm: FC<Props> = ({onAddReward, users}) => {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View>
           <Text style={styles.title}>Give Reward</Text>
-          {formFields.map(field => (
-            <View style={styles.inputWrapper} key={field}>
-              <TextInput
-                value={form[field]}
-                label={field}
-                onChangeText={setFormField(field)}
-                error={error?.field === field && error.text}
-                keyboardType={field === 'amount' ? 'numeric' : 'default'}
-              />
-            </View>
-          ))}
+          {formFields.map(field => {
+            const commonProps: TextInputProps = {
+              value: form[field],
+              label: field,
+              onChangeText: setFormField(field),
+              error: error?.field === field && error.text,
+              keyboardType: field === 'amount' ? 'numeric' : 'default',
+            };
+            return (
+              <View style={styles.inputWrapper} key={field}>
+                {field === 'to' ? (
+                  <TextInputWithOptions
+                    options={transformedUsers}
+                    {...commonProps}
+                  />
+                ) : (
+                  <TextInput {...commonProps} />
+                )}
+              </View>
+            );
+          })}
           <TouchableOpacity style={styles.giveBtn} onPress={addReward}>
             <Text style={styles.btnText}>Give</Text>
           </TouchableOpacity>
