@@ -11,15 +11,31 @@ const DATA_MAP: {[key in DataKey]: unknown} = {
 };
 
 class Api {
+  private deepCopy = <T>(data: T): T => {
+    if (Array.isArray(data)) {
+      return data.map(this.deepCopy) as T;
+    }
+    if (data && typeof data === 'object') {
+      return {...data};
+    }
+    return data;
+  };
+
   private fetch = <T>(key: DataKey | 'addReward', data?: unknown) => {
     // emulating api fetch
     return new Promise<T>(res =>
       setTimeout(() => {
         if (key === 'addReward') {
-          (DATA_MAP.rewards as Reward[]).push(data as Reward);
-          res(data as T);
+          const rewardsList = DATA_MAP.rewards as Reward[];
+          const newReward = {
+            ...(data as NewReward),
+            id: rewardsList[rewardsList.length - 1].id + 1,
+            date: new Date(),
+          };
+          rewardsList.push(newReward);
+          res(newReward as T);
         } else {
-          res(DATA_MAP[key] as T);
+          res(this.deepCopy(DATA_MAP[key]) as T);
         }
       }, 300),
     );
@@ -29,14 +45,8 @@ class Api {
 
   getRewards = () => this.fetch<Reward[]>('rewards');
 
-  addReward = (rewardInfo: NewReward) => {
-    const newReward: Reward = {
-      ...rewardInfo,
-      id: rewards.length + 1,
-      date: new Date(),
-    };
-    return this.fetch<Reward>('addReward', newReward);
-  };
+  addReward = (rewardInfo: NewReward) =>
+    this.fetch<Reward>('addReward', rewardInfo);
 
   getUser = () => this.fetch<User>('user');
 

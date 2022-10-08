@@ -24,7 +24,8 @@ const Dashboard: FC = () => {
 
   useEffect(() => {
     api.loadAllData().then(setAllData).catch(console.error);
-  }, [setAllData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onAddReward = useCallback(
     (newReward: Reward) => {

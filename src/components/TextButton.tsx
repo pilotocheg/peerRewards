@@ -22,12 +22,11 @@ const TextButton: FC<Props> = ({
   disabled,
   ...props
 }) => {
-  const isDisabled = loading || disabled;
   return (
     <TouchableOpacity
       ref={forwardedRef}
-      style={[styles.button, isDisabled && styles.disabled, style]}
-      disabled={isDisabled}
+      style={[styles.button, style]}
+      disabled={loading || disabled}
       {...props}>
       <Text style={styles.text}>{text}</Text>
       {loading && (
@@ -62,9 +61,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  disabled: {
-    opacity: 0.7,
+    zIndex: 1,
   },
 });
 

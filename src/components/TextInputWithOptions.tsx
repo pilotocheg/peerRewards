@@ -59,13 +59,14 @@ const TextInputWithOptions: FC<Props> = ({
         <View style={styles.options}>
           {filteredOptions.map((option, idx, arr) => (
             <TouchableOpacity
+              key={option}
               style={[
                 styles.option,
                 idx !== arr.length - 1 && styles.optionBorder,
               ]}>
               {/* TODO: this is a workaround to make the option press work on Android.
               Find a way how to make it work with `onPress` on TouchableOpacity */}
-              <View key={option} onTouchEnd={handleOptionPress(option)}>
+              <View onTouchEnd={handleOptionPress(option)}>
                 <Text>{option}</Text>
               </View>
             </TouchableOpacity>

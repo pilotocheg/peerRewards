@@ -19,6 +19,7 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: 50,
     overflow: 'hidden',
+    backgroundColor: 'lightgray',
   },
 });
 

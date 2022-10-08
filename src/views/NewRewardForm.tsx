@@ -60,7 +60,10 @@ const NewRewardForm: FC<Props> = ({onAddReward, users, currentUser}) => {
   const [error, setError] = useState<ErrorState | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const transformedUsers = useMemo(() => users.map(user => user.name), [users]);
+  const transformedUsers = useMemo(
+    () => users.filter(u => u.id !== currentUser.id).map(u => u.name),
+    [users, currentUser],
+  );
 
   const setFormField = (field: FormField) => (text: string) => {
     setForm(prevForm => ({...prevForm, [field]: text}));
@@ -85,7 +88,7 @@ const NewRewardForm: FC<Props> = ({onAddReward, users, currentUser}) => {
       userName: user.name,
       userId: user.id,
       text: message,
-      rewardedBy: currentUser,
+      rewardedBy: {...currentUser},
     });
     setLoading(false);
     onAddReward(newReward);
